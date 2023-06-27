@@ -62,16 +62,103 @@ Servlet/JSP를 활용한 웹 프로젝트 구현
 ![1-3  메인화면](https://github.com/0hsoyeop/TW-Library/assets/131536077/32504c99-6fe2-4d9e-8894-bad4b00790f2)
 
 #### 2. 게시판
-#### 2-1. 공지사항
-![1  공지사항](https://github.com/0hsoyeop/TW-Library/assets/131536077/2d7442ce-a3f5-4727-8fbe-c43d22f271f2)
-
-#### 2-2. 비회원 입주상담
 ![4-1  비회원 입주상담](https://github.com/0hsoyeop/TW-Library/assets/131536077/12d9e993-7ce5-4cb7-b6c1-aaac2b033c86)
 
 #### 3. 관리자 - 재무관리
 ![3  재무관리](https://github.com/0hsoyeop/TW-Library/assets/131536077/9fc98612-c5a1-4078-a735-4b691446c4b2)
 
-#### 4. 관리자 - 직원 급여 정보 수정
-![1-2  직원급여정보 수정](https://github.com/0hsoyeop/TW-Library/assets/131536077/3bc72eb3-769b-4e85-bd8b-d32445ef79a1) 
 ---
+
 ### 구현 기능
+#### 복지 프로그램 등록
+1. '프로그램 등록' 페이지에서 정보를 입력받는다. 프로그램 일자는 기본값으로 시스템 날짜로 자동 설정된다.
+2. form 태그로 입력받은 데이터를 ProgramDAO로 전송한다.
+3. DB에 추가할 Index를 getProgSeq()로 구하고 해당 seq로 입력받은 데이터를 insert한다.
+4. insert 완료되면 목록 보기 페이지로 이동한다.
+
+- registerProgram.jsp
+```HTML
+		<form method="POST" action="/neulbom/admin/manage/registerProgram.do">
+
+            	<div>제목</div>
+				<input type="text" name="title" class="form-control registerProgram-form" placeholder="프로그램 제목을 입력하세요." required maxlength="15">
+            	<div>내용</div>
+				<textarea name="content" class="form-control registerProgram-form" maxlength="100" required style="resize: none" placeholder="프로그램 내용을 입력하세요."></textarea>
+            	<div>프로그램 날짜</div>
+				<input type="date" name="prog_date" id="register-date" class="form-control registerProgram-form" required>
+            	
+            	<div>강의실</div>
+				<select id="place" name="place" class="place form-select">
+					<option value="늘봄">늘봄</option>
+					<option value="광장">광장</option>
+					<option value="늘봄 식당">늘봄 식당</option>
+					<option value="늘봄문화홀">늘봄문화홀</option>
+				</select>
+            	<div>정원</div>
+				<input type="number" name="people" class="form-control registerProgram-form" min="1" max="100" value="1" required>
+				<input class="btn btn-primary" type="submit" value="등록하기">
+		</form>
+		
+```
+
+- ProgramDAO.java
+  - DB연결 설정
+```java
+	private Connection conn;
+	private Statement stat;
+	private PreparedStatement pstat;
+	private ResultSet rs;
+```
+
+```java
+	// 프로그램 신규 등록하기
+	public int registerProgram(ProgramDTO progDto) {
+		
+		try {
+			
+			String sql = "insert into tblProgram(prog_seq, title, prog_date, content, place, people) values(?, ?, to_date(?, 'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?)";
+			
+			pstat = conn.prepareStatement(sql);
+			
+			pstat.setString(1, progDto.getProg_seq());
+			pstat.setString(2, progDto.getTitle());
+			pstat.setString(3, progDto.getProg_date());
+			pstat.setString(4, progDto.getContent());
+			pstat.setString(5, progDto.getPlace());
+			pstat.setString(6, progDto.getPeople());
+			
+			return pstat.executeUpdate();
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return 0;
+	}
+
+	// 프로그램 seq 구하기
+	public String getProgSeq() {
+		
+		try {
+			
+			String sql = "select max(prog_seq)+1 as prog_seq from tblProgram";
+
+			
+			stat = conn.createStatement();
+			rs = stat.executeQuery(sql);
+			
+			if (rs.next()) {
+				return rs.getString("prog_seq");
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		return null;
+	}
+```
+
