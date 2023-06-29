@@ -151,6 +151,52 @@ to_char(money, 'FM9,999,999') || '원' as money from tblSpend order by sdate des
 	}
 ```
 
+- **manageMoney.jsp**
+	- DAO에서 select하여 얻은 결과를 jsp 페이지로 출력한다.
+	- **SpendDTO 객체로부터 지출 내역과 관련된 데이터를 꺼내 jsp에서 사용한다.**
+
+```html
+            <table id="latestSpendList-table" class="table table-hover">
+           	<colgroup>
+					<col width=10%>
+					<col width=20%>
+					<col width=25%>
+					<col width=25%>
+					<col width=20%>
+			</colgroup>
+			<thead>
+				<tr>
+					<th>번호</th>
+					<th>날짜</th>
+					<th>지출항목</th>
+					<th>지출금액</th>
+					<th>분류</th>
+				</tr>
+			<tbody>
+				<c:forEach items="${latestSpendList}" var="spendDto">
+				<tr>
+					<td>${spendDto.rownum}</td>
+					<td>${spendDto.sdate}</td>
+					<td>${spendDto.title}</td>
+					<td>${spendDto.money}</td>
+					<td>${spendDto.category}</td>
+				</tr>
+				</c:forEach>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="3" class="latestSpendList-total">합계</td>
+					<td class="latestSpendList-total">${spendSum}</td>
+					<td></td>
+				</tr>
+			</tfoot>
+			</table>
+```
+
+### ⬇️ 웹 페이지에는 이렇게 표시된다! ⬇️
+![image](https://github.com/0hsoyeop/Neulbom/assets/131536077/26664855-e618-4272-8922-3d4e03e0cd6c)
+
+
 --- 
 ## 개발 스토리
 ### 회고
@@ -159,6 +205,7 @@ to_char(money, 'FM9,999,999') || '원' as money from tblSpend order by sdate des
         <td>💡 시행착오가 가장 많았던 프로젝트</td>
     </tr>
 </table>
+
 
 - **프로젝트 팀장이 해야할 일은?** 
   
