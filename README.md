@@ -58,109 +58,122 @@ Servlet/JSP를 활용한 웹 프로젝트 구현
 
 ---
 ### 화면구성
-#### 1. 메인화면
+### 1. 메인화면 ⬇️
+- header, 갤러리, footer로 이루어져있다.
+- 메인 화면의 '로그인' 버튼을 클릭하여 로그인 페이지로 이동한다.
+- 로그인은 '직원, 입주자, 보호자'로 구분하여 처리한다.
+
+- **늘봄 소개** : 인사말, 시설소개, 오시는길
+- **입주안내**
+- **알림게시판** : 공지사항, 식단표, 생활게시판
+- **커뮤니티** : 입주상담, 문의게시판, 자유게시판
 ![1-1  메인화면](https://github.com/0hsoyeop/TW-Library/assets/131536077/c10348ee-cc0e-4dae-bfa0-250f585164f3)
 ![1-2  메인화면](https://github.com/0hsoyeop/TW-Library/assets/131536077/fbc9bff8-0659-4104-aa4f-8306c0f9c0df)
 ![1-3  메인화면](https://github.com/0hsoyeop/TW-Library/assets/131536077/32504c99-6fe2-4d9e-8894-bad4b00790f2)
 
-#### 2. 게시판
+### 2. 게시판 ⬇️
+- 비회원은 입주상담 글을 등록, 조회, 수정, 삭제할 수 있다. 
+- 비회원이 글을 작성하려면 이름과 전화번호를 입력받는다.
+- **입력받은 정보와 일치하는 글만 조회** 할 수 있다.
+- 문의글에 관리자가 답변을 등록하고, 해당 글에는 **[답변완료]** 표시를 한다.
 ![4-1  비회원 입주상담](https://github.com/0hsoyeop/TW-Library/assets/131536077/12d9e993-7ce5-4cb7-b6c1-aaac2b033c86)
 
-#### 3. 관리자 - 재무관리
+### 3. 관리자 - 재무관리 ⬇️
+- chart.js를 사용하여 DB의 데이터와 연동된 차트를 출력한다.
+- **원형차트** : 실버타운 입주자, 요양원 입주자 수를 표시
+- **라인차트** : 최근 5개월 간의 지출 총액을 표시
+- **최근지출내역** : 최근 10건의 지출 항목과 금액 등, 총 지출액 표시 
 ![3  재무관리](https://github.com/0hsoyeop/TW-Library/assets/131536077/9fc98612-c5a1-4078-a735-4b691446c4b2)
 
 ---
+### 담당 업무 상세보기
+### 최근 지출 내역 조회
+- 사용된 테이블: 지출내역 (tblSpend)
 
-### 구현 기능
-#### 복지 프로그램 등록
-1. '프로그램 등록' 페이지에서 정보를 입력받는다. 프로그램 일자는 기본값으로 시스템 날짜로 자동 설정된다.
-2. form 태그로 입력받은 데이터를 ProgramDAO로 전송한다.
-3. DB에 추가할 Index를 getProgSeq()로 구하고 해당 seq로 입력받은 데이터를 insert한다.
-4. insert 완료되면 목록 보기 페이지로 이동한다.
+<table>
+    <tr>
+    <th>지출내역 (tblSpend)</th>
+    </tr>
+    <tr>
+        <td>지출번호</td>
+    </tr>
+    <tr>
+        <td>지출항목</td>
+    </tr>
+    <tr>
+        <td>카테고리</td>
+    </tr>
+    <tr>
+        <td>지출금액</td>
+    </tr>
+    <tr>
+        <td>지출날짜</td>
+    </tr>
+</table>
 
-- registerProgram.jsp
-```HTML
-		<form method="POST" action="/neulbom/admin/manage/registerProgram.do">
-
-            	<div>제목</div>
-				<input type="text" name="title" class="form-control registerProgram-form" placeholder="프로그램 제목을 입력하세요." required maxlength="15">
-            	<div>내용</div>
-				<textarea name="content" class="form-control registerProgram-form" maxlength="100" required style="resize: none" placeholder="프로그램 내용을 입력하세요."></textarea>
-            	<div>프로그램 날짜</div>
-				<input type="date" name="prog_date" id="register-date" class="form-control registerProgram-form" required>
-            	
-            	<div>강의실</div>
-				<select id="place" name="place" class="place form-select">
-					<option value="늘봄">늘봄</option>
-					<option value="광장">광장</option>
-					<option value="늘봄 식당">늘봄 식당</option>
-					<option value="늘봄문화홀">늘봄문화홀</option>
-				</select>
-            	<div>정원</div>
-				<input type="number" name="people" class="form-control registerProgram-form" min="1" max="100" value="1" required>
-				<input class="btn btn-primary" type="submit" value="등록하기">
-		</form>
-		
-```
-
-- ProgramDAO.java
-  - DB연결 설정
+ ### 🧩 코드 보기
+- MoneyDAO.java
+- **데이터 베이스에 저장된 지출 내역을 불러와야 하므로 DB select 작업** 을 한다.
+- 지출테이블에서 지출날짜, 지출 항목, 카테고리, 지출금액 컬럼을 출력한다.
+- 날짜 내림차순 정렬한 **상위 10개 데이터만 불러오기 위해서 rownum으로 범위를 지정** 한다.
+- 이때 사용되는 SpendDTO.java의 **SpendDTO는 지출 내역 테이블의 컬럼 정보를 가지고 있다.**
+ 
 ```java
-	private Connection conn;
-	private Statement stat;
-	private PreparedStatement pstat;
-	private ResultSet rs;
-```
+	public List<SpendDTO> getLatestSpend() {
 
-```java
-	// 프로그램 신규 등록하기
-	public int registerProgram(ProgramDTO progDto) {
+		List<SpendDTO> latestSpendList = new ArrayList<SpendDTO>();
 		
-		try {
+		try {			
+			String sql = "select rownum, a.* from (select to_char(sdate, 'yyyy-mm-dd') as sdate, title, category,
+to_char(money, 'FM9,999,999') || '원' as money from tblSpend order by sdate desc) a where rownum <=10";
 			
-			String sql = "insert into tblProgram(prog_seq, title, prog_date, content, place, people) values(?, ?, to_date(?, 'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?)";
+			stat = conn.createStatement();
+			rs = stat.executeQuery(sql);
 			
-			pstat = conn.prepareStatement(sql);
+			while(rs.next()) {
+				SpendDTO spendDto = new SpendDTO();			
+				spendDto.setRownum(rs.getInt("rownum"));
+				spendDto.setSdate(rs.getString("sdate"));
+				spendDto.setTitle(rs.getString("title"));
+				spendDto.setCategory(rs.getString("category"));
+				spendDto.setMoney(rs.getString("money"));
+				
+				latestSpendList.add(spendDto);
+			}
 			
-			pstat.setString(1, progDto.getProg_seq());
-			pstat.setString(2, progDto.getTitle());
-			pstat.setString(3, progDto.getProg_date());
-			pstat.setString(4, progDto.getContent());
-			pstat.setString(5, progDto.getPlace());
-			pstat.setString(6, progDto.getPeople());
-			
-			return pstat.executeUpdate();
-			
+			return latestSpendList;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		
-		return 0;
-	}
-
-	// 프로그램 seq 구하기
-	public String getProgSeq() {
-		
-		try {
-			
-			String sql = "select max(prog_seq)+1 as prog_seq from tblProgram";
-
-			
-			stat = conn.createStatement();
-			rs = stat.executeQuery(sql);
-			
-			if (rs.next()) {
-				return rs.getString("prog_seq");
-			}
-			
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		
-		return null;
+		return latestSpendList;
 	}
 ```
 
+--- 
+## 개발 스토리
+### 회고
+<table>
+    <tr>
+        <td>💡 시행착오가 가장 많았던 프로젝트</td>
+    </tr>
+</table>
+
+- **프로젝트 팀장이 해야할 일은?** 
+  
+![image](https://github.com/0hsoyeop/Neulbom/assets/131536077/674615a2-b75c-4654-aecc-5e9b520f0497)
+
+ <p> 웹 프로젝트에서는 팀장을 맡았습니다.  팀원들 모두 서버 구현을 어려워했기 때문에 화면 설계를 짧은 시간 내에 끝내고 
+ 남은 기간을 백엔드 개발에 몰두할 수 있도록 일정을 세웠습니다. 
+ ERD와 더미데이터 담당, 화면설계 담당을 나누어 Figma로 화면을 하나씩 만들어보기 시작했습니다. 그러나 여기서부터 조금씩 일이 꼬이기 시작했습니다.</p>  
+ <p>HTML 코드를 추출하기 위해  Figma를 선택하였는데, 팀원들 중 누구도 사용법을 잘 알지 못해 화면 설계에 시간이 많이 소요됐습니다. 
+ 게다가 Figma로 추출한 코드는 거의 모든 것을 다시 수정해야할 정도로 손이 많이 갔습니다. 생각과는 다른 방향으로 일이 흘러가니, 예상 일정보다 2~3일 정도 늦어지게 되었습니다. </p>
+ <p>프로젝트 기간이 길지 않았기 때문에 마음이 초조했습니다. 팀원들과 함께 상의하여 결정한 툴이었지만, 
+ 팀장으로서 조금 더 알아보고 프로젝트에 적합한 프로그램을 찾아서 개발을 추진했으면 좋았을 것이라는 아쉬움이 들었습니다. </p>  
+
+
+   - **개발의 목표를 생각하자** 
+  <p>시간이 부족하다보니 처음 떠올렸던 모든 기능을 구현할 수는 없었습니다. 회원과 관리자의 채팅 , 부트스트랩을 활용해서 UI 요소를 다양하게 구성하는 것, 직원 근태 관리 등등. 이미 팀원들 각자 맡은 업무의 진행도가 더딘 상황이라 이런 부가적인 기능은 후순위로 미뤄야 했습니다.</p>
+ <p>구현하지 못하는 업무가 생기자 모두 아쉬워했습니다. 그러나 이번 프로젝트의 가장 주된 목표는 Servlet과 JSP로 페이지를 안정적으로 만들어보는 것이라고 생각했습니다. 그래서 이번에 미처 완성하지 못한 기능은 Spring 프로젝트에서 보완하기로 결정하고, 남은 기간동안 개발에 몰입하여 기한에 맞춰 끝낼 수 있었습니다.</p>  
+  <p>개발자로서 정해진 기한을 지키는 것도 중요한 역량이기 때문에, 개발의 목표를 명확히 바로잡고 우선 순위를 잘 생각하여 작업해야 한다는 것을 깨달았습니다.</p>  
